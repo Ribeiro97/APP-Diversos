@@ -1,0 +1,10 @@
+C:\Users\Ribeiro\Desktop\temp\App Diversos\APP Diversos\APP Diversos\obj\Debug\APP_Diversos.csproj.AssemblyReference.cache
+C:\Users\Ribeiro\Desktop\temp\App Diversos\APP Diversos\APP Diversos\obj\Debug\APP_Diversos.Diversos.resources
+C:\Users\Ribeiro\Desktop\temp\App Diversos\APP Diversos\APP Diversos\obj\Debug\APP_Diversos.Properties.Resources.resources
+C:\Users\Ribeiro\Desktop\temp\App Diversos\APP Diversos\APP Diversos\obj\Debug\APP_Diversos.csproj.GenerateResource.cache
+C:\Users\Ribeiro\Desktop\temp\App Diversos\APP Diversos\APP Diversos\obj\Debug\APP_Diversos.csproj.CoreCompileInputs.cache
+C:\Users\Ribeiro\Desktop\temp\App Diversos\APP Diversos\APP Diversos\obj\Debug\APP Diversos.exe
+C:\Users\Ribeiro\Desktop\temp\App Diversos\APP Diversos\APP Diversos\obj\Debug\APP Diversos.pdb
+C:\Users\Ribeiro\Desktop\temp\App Diversos\APP Diversos\APP Diversos\bin\Debug\APP Diversos.exe.config
+C:\Users\Ribeiro\Desktop\temp\App Diversos\APP Diversos\APP Diversos\bin\Debug\APP Diversos.exe
+C:\Users\Ribeiro\Desktop\temp\App Diversos\APP Diversos\APP Diversos\bin\Debug\APP Diversos.pdb
