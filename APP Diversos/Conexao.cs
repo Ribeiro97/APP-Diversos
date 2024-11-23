@@ -65,6 +65,6 @@ namespace APP_Diversos
                 MessageBox.Show($"Erro ao conectar: {erro.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
-        }
+        }       
     }
 }

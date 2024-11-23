@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using System.Drawing;
+using System.CodeDom;
 
 namespace APP_Diversos
 {
@@ -17,18 +18,19 @@ namespace APP_Diversos
         public Sql() { }
 
 
-        public async Task GerarXML(string query, int CodigoFormulario, int CodigoEmpresa, int CodigoSerie, string Tipo, string connectionString)
+        public async Task getXML(string query, int CodigoFormulario, int CodigoEmpresa, int CodigoSerie, string Tipo, string checkboxHomologacao, string connectionString)
         {
-            if(string.IsNullOrEmpty(connectionString))
+            if (string.IsNullOrEmpty(connectionString))
             {
-                MessageBox.Show("Realize a conexão com o banco de dados", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Realize a conexão com o banco de dados", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);                               
                 return;
             }
 
 
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
-                int Forms = 0;                
+                int Forms = 0;
+                int codSerie = 0;
                 string res = String.Empty;
 
                 await conn.OpenAsync();
@@ -38,8 +40,7 @@ namespace APP_Diversos
                     cmd.Parameters.Add("Empresa", SqlDbType.Int).Value = CodigoEmpresa;
                     cmd.Parameters.Add("Serie", SqlDbType.Int).Value = CodigoSerie;
                     cmd.Parameters.Add("Formulario", SqlDbType.Int).Value = CodigoFormulario;
-                    cmd.Parameters.Add("Modelo", SqlDbType.Int).Value = 58;
-                    cmd.Parameters.Add("Ambiente", SqlDbType.VarChar).Value = "P";
+                    cmd.Parameters.Add("Ambiente", SqlDbType.VarChar).Value = checkboxHomologacao;
 
                     using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                     {
@@ -47,15 +48,26 @@ namespace APP_Diversos
                         // Validar o TIPO para chamar a coluna correta
                         switch (Tipo)
                         {
-                            case "NFe":
+                            case "NFe":                                
                                 while (await reader.ReadAsync())
                                 {
-                                    res = reader["XML_NFe"].ToString();
+                                    codSerie = Convert.ToInt32(reader["Codigo"]);
                                 }
-                                break;
+                                reader.Close();
+
+                                cmd.CommandText = "Select Convert(xml, XML_Nfe) as XML From Fiscal_NF Where Empresa = @Empresa AND Serie = @Serie2 AND Formulario = @Formulario";
+                                cmd.Parameters.Add("Serie2", SqlDbType.Int).Value = codSerie;
+
+                                using (SqlDataReader reader2 = await cmd.ExecuteReaderAsync())
+                                {
+                                    while (await reader2.ReadAsync())
+                                    {
+                                        res = reader2["XML"].ToString();
+                                    }
+                                }
+                            break;
 
                             case "MDFe":
-                                int codSerie = 0;
                                 int codigoMDFE = 0;
 
                                 while (await reader.ReadAsync())
@@ -86,14 +98,14 @@ namespace APP_Diversos
                                         }
                                     }
                                 }
-                                break;
+                            break;
 
                             case "NFCe":
                                 while (await reader.ReadAsync())
                                 {
                                     res = reader["XML_NFe"].ToString();
                                 }
-                                break;
+                            break;
 
                             case "NFSe":
                                 while (await reader.ReadAsync())
@@ -114,72 +126,84 @@ namespace APP_Diversos
                                         res = reader2["XML"].ToString();
                                     }
                                 }
-                                break;
+                            break;
 
                             case "CTe":
-                                while (await reader.ReadAsync())
+                                while(await reader.ReadAsync())
                                 {
-                                    Forms = Convert.ToInt32(reader["Codigo"]);
+                                    codSerie = Convert.ToInt32(reader["Codigo"]);
                                 }
-
                                 reader.Close();
-                                cmd.Parameters.Clear();
 
-                                cmd.CommandText = "Select XML From Fiscal_CTe_XML Where Cod_Fiscal_CTe = @Forms";
-                                cmd.Parameters.Add("Forms", SqlDbType.Int).Value = Forms;
 
+                                cmd.CommandText = "Select XML From Fiscal_Cte_XML WHERE Cod_Fiscal_CTe = (Select Codigo From Fiscal_Cte WHERE Formulario = @Formulario and Serie = @Serie2 AND Empresa = @Empresa);";
+                                cmd.Parameters.Add("Serie2", SqlDbType.Int).Value = codSerie;
+                                  
                                 using (SqlDataReader reader2 = await cmd.ExecuteReaderAsync())
                                 {
                                     while (await reader2.ReadAsync())
                                     {
                                         res = reader2["XML"].ToString();
                                     }
-                                }
-                                break;
-                        }
+                                }                                                            
+                            break;
 
+                            case "Sat":
 
-
-
-                        // Validação do xml
-                        if (res == String.Empty || res == null)
-                        {
-                            MessageBox.Show("Nennhum XML foi gerado no banco para o código informadoah tá", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            return;
-                        }
-
-                        else
-                        {
-                            // Criação do arquivo XML
-                            XmlDocument xml = new XmlDocument();
-                            try
-                            {
-                                xml.LoadXml(res);
-
-                                SaveFileDialog salvarArquivo = new SaveFileDialog
+                                while(await reader.ReadAsync())
                                 {
-                                    Filter = "XML files (*.xml)|*.xml",
-                                    Title = "Salvar XML como"
-                                };
-
-                                if (salvarArquivo.ShowDialog() == DialogResult.OK)
-                                {
-                                    xml.Save(salvarArquivo.FileName);
-                                    MessageBox.Show("Arquivo foi salvo com sucesso", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                    res = reader["XML_CFE"].ToString();
                                 }
-                            }
-                            catch (XmlException msg)
-                            {
-                                MessageBox.Show($"{msg}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                return;
-                            }
-                            catch (Exception msg)
-                            {
-                                MessageBox.Show($"{msg}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                return;
-                            }
+
+                            break;
                         }
+
+                        gerarXML(res);
                     }
+                }
+            }
+        }
+
+        public void gerarXML(string res)
+        {
+
+            // Validação do XML
+            if (res == String.Empty || res == null)
+            {
+                MessageBox.Show("Nennhum XML foi gerado no banco para o código informado", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            else
+            {
+                // Criação do arquivo XML
+                XmlDocument xml = new XmlDocument();
+                try
+                {
+                    xml.LoadXml(res);
+
+                    SaveFileDialog salvarArquivo = new SaveFileDialog
+                    {
+                        Filter = "XML files (*.xml)|*.xml",
+                        Title = "Salvar XML como"
+                    };
+
+                    if (salvarArquivo.ShowDialog() == DialogResult.OK)
+                    {
+                        xml.Save(salvarArquivo.FileName);
+                        MessageBox.Show("Arquivo foi salvo com sucesso", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        return;
+                    }
+                }
+                catch (XmlException msg)
+                {
+                    MessageBox.Show($"{msg}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                catch (Exception msg)
+                {
+                    MessageBox.Show($"{msg}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
                 }
             }
         }
